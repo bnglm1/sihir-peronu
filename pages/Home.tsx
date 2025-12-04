@@ -9,7 +9,7 @@ const Home: React.FC = () => {
   const [results, setResults] = useState<Character[]>([]);
   const [loading, setLoading] = useState(false);
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
-  const [randomCharacters, setRandomCharacters] = useState<Character[]>([]);
+  const [displayCharacters, setDisplayCharacters] = useState<Character[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,10 +18,10 @@ const Home: React.FC = () => {
       const data = await getCharacters("");
       setAllCharacters(data);
       
-      // Select 3 random characters for "Featured" section
+      // Shuffle data to keep the home screen fresh, but show ALL characters
       if (data.length > 0) {
         const shuffled = [...data].sort(() => 0.5 - Math.random());
-        setRandomCharacters(shuffled.slice(0, 3));
+        setDisplayCharacters(shuffled);
       }
       
       setLoading(false);
@@ -37,7 +37,6 @@ const Home: React.FC = () => {
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     } else {
-      // If no search, show nothing (we show featured instead)
       filtered = [];
     }
 
@@ -45,7 +44,7 @@ const Home: React.FC = () => {
   }, [searchTerm, allCharacters]);
 
   return (
-    <div className="min-h-screen bg-magic-dark flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-magic-dark flex flex-col relative overflow-x-hidden">
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-20 -left-20 w-96 h-96 bg-magic-purple/20 rounded-full blur-3xl"></div>
@@ -66,17 +65,17 @@ const Home: React.FC = () => {
       </div>
 
       {/* Header */}
-      <header className="w-full py-8 text-center z-10 mt-8">
+      <header className="w-full py-8 text-center z-10 mt-8 px-4">
         <h1 className="text-4xl md:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-magic-gold to-yellow-200 tracking-widest drop-shadow-lg cursor-pointer hover:scale-105 transition-transform" onClick={() => setSearchTerm('')}>
           Sihir Peronu
         </h1>
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow flex flex-col items-center px-4 z-10 pb-20">
+      <main className="flex-grow flex flex-col items-center z-10 w-full">
         
         {/* Search Section */}
-        <div className="text-center mb-8 w-full max-w-2xl animate-fade-in-up">
+        <div className="text-center mb-8 w-full max-w-2xl px-4 animate-fade-in-up">
           <p className="text-xl md:text-2xl text-slate-300 font-light tracking-wide mb-6 font-sans">
             Favori karakterlerini keşfet
           </p>
@@ -110,50 +109,75 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Results Area */}
-        <div className="w-full max-w-5xl min-h-[100px]">
+        {/* Content Area */}
+        <div className="w-full min-h-[100px] mb-12">
           {loading ? (
             <LoadingSpinner />
           ) : (
             <>
-              {/* Active Search Results */}
+              {/* Active Search Results (Grid Layout) */}
               {searchTerm && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-fade-in">
-                  {results.length === 0 ? (
-                    <div className="col-span-full text-center text-slate-500 py-10">
-                      <p className="text-lg">Aradığınız kriterlere uygun karakter bulunamadı.</p>
-                      <button 
-                        onClick={() => setSearchTerm('')}
-                        className="mt-4 text-magic-gold hover:underline"
-                      >
-                        Aramayı temizle
-                      </button>
-                    </div>
-                  ) : (
-                    results.map((char) => (
-                      <CharacterCard key={char.id} char={char} navigate={navigate} />
-                    ))
-                  )}
+                <div className="w-full max-w-6xl mx-auto px-4">
+                  <div className="flex items-center gap-4 mb-6">
+                    <h2 className="text-2xl font-serif text-white/90">Arama Sonuçları</h2>
+                    <div className="h-px bg-slate-700 flex-1"></div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-fade-in pb-20">
+                    {results.length === 0 ? (
+                      <div className="col-span-full text-center text-slate-500 py-10">
+                        <p className="text-lg">Aradığınız kriterlere uygun karakter bulunamadı.</p>
+                        <button 
+                          onClick={() => setSearchTerm('')}
+                          className="mt-4 text-magic-gold hover:underline"
+                        >
+                          Aramayı temizle
+                        </button>
+                      </div>
+                    ) : (
+                      results.map((char) => (
+                        <div key={char.id} className="h-[400px]">
+                          <CharacterCard char={char} navigate={navigate} />
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
 
-              {/* Empty State / Featured Content */}
+              {/* Horizontal Scroll Gallery (No Search) */}
               {!searchTerm && (
-                <div className="animate-fade-in">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="h-px bg-slate-700 flex-1"></div>
-                    <h2 className="text-2xl font-serif text-magic-gold/80">Günün Karakterleri</h2>
+                <div className="animate-fade-in w-full">
+                  <div className="flex items-center gap-4 mb-6 max-w-6xl mx-auto px-4">
+                    <div className="h-px bg-slate-700 w-12 md:w-24"></div>
+                    <h2 className="text-xl md:text-2xl font-serif text-magic-gold/80 whitespace-nowrap">Tüm Karakterleri Keşfet</h2>
                     <div className="h-px bg-slate-700 flex-1"></div>
                   </div>
                   
-                  {randomCharacters.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                      {randomCharacters.map((char) => (
-                        <CharacterCard key={char.id} char={char} navigate={navigate} />
-                      ))}
+                  {displayCharacters.length > 0 ? (
+                    <div className="relative w-full">
+                      {/* Gradient Masks for Scroll Indication */}
+                      <div className="absolute left-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-r from-magic-dark to-transparent z-10 pointer-events-none"></div>
+                      <div className="absolute right-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-l from-magic-dark to-transparent z-10 pointer-events-none"></div>
+
+                      {/* Horizontal Scroll Container */}
+                      <div className="flex overflow-x-auto gap-6 py-8 px-4 md:px-12 snap-x snap-mandatory scroll-smooth scrollbar-hide w-full">
+                        {displayCharacters.map((char) => (
+                          <div 
+                            key={char.id} 
+                            className="min-w-[85vw] sm:min-w-[350px] md:min-w-[320px] h-[450px] snap-center first:pl-4 last:pr-4"
+                          >
+                            <CharacterCard char={char} navigate={navigate} />
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Scroll Hint (Mobile) */}
+                      <div className="text-center mt-2 text-slate-500 text-xs md:hidden animate-pulse">
+                        &larr; Kaydır &rarr;
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-center text-slate-600">Henüz hiç karakter eklenmemiş.</p>
+                    <p className="text-center text-slate-600 py-10">Henüz hiç karakter eklenmemiş.</p>
                   )}
                 </div>
               )}
@@ -169,24 +193,39 @@ const Home: React.FC = () => {
   );
 };
 
-// Extracted Card Component for cleaner code
+// Enhanced Card Component
 const CharacterCard: React.FC<{ char: Character; navigate: any }> = ({ char, navigate }) => (
   <div 
     onClick={() => navigate(`/character/${char.id}`)}
-    className="bg-slate-800 rounded-xl overflow-hidden cursor-pointer transform hover:scale-105 hover:shadow-magic-gold/20 hover:shadow-xl transition duration-300 border border-slate-700 group h-full flex flex-col"
+    className="bg-slate-800 rounded-2xl overflow-hidden cursor-pointer h-full flex flex-col border border-slate-700/50 group relative hover:border-magic-gold/50 transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-[0_20px_50px_-12px_rgba(251,191,36,0.2)]"
   >
-    <div className="h-64 overflow-hidden relative">
-       <img src={char.imageUrl} alt={char.name} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
-       <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent h-24"></div>
+    {/* Image Container */}
+    <div className="h-3/4 overflow-hidden relative">
+       <div className="absolute inset-0 bg-slate-800 animate-pulse" /> {/* Placeholder while loading */}
+       <img 
+         src={char.imageUrl} 
+         alt={char.name} 
+         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-700 ease-in-out" 
+       />
+       <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent h-32"></div>
        
        {/* Universe Badge */}
-       <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase shadow-lg bg-slate-900/80 text-magic-white border border-magic-white/30 backdrop-blur-sm">
+       <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold uppercase shadow-lg bg-slate-900/90 text-magic-purple border border-magic-purple/30 backdrop-blur-md z-10">
          {char.universe}
        </div>
     </div>
-    <div className="p-4 relative flex-1 flex flex-col justify-end">
-      <h3 className="text-xl font-serif text-magic-gold group-hover:text-white transition-colors">{char.name}</h3>
-      <p className="text-slate-400 text-sm mt-1 line-clamp-2">{char.description}</p>
+
+    {/* Info Container */}
+    <div className="p-5 relative flex-1 flex flex-col justify-end z-10">
+      <div className="transform group-hover:translate-x-1 transition-transform duration-300">
+        <h3 className="text-2xl font-serif text-white group-hover:text-magic-gold transition-colors drop-shadow-md">{char.name}</h3>
+        <p className="text-slate-400 text-sm mt-2 line-clamp-2 font-light leading-relaxed group-hover:text-slate-300 transition-colors">
+          {char.description}
+        </p>
+      </div>
+      
+      {/* Decorative Line */}
+      <div className="w-0 group-hover:w-full h-0.5 bg-gradient-to-r from-magic-gold to-transparent mt-4 transition-all duration-500"></div>
     </div>
   </div>
 );
